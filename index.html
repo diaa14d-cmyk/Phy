@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة اختبارات وظائف الأعضاء</title>
+    <style>
+        :root {
+            --olive-green: #556B2F;
+            --light-beige: #F5F5DC;
+            --dark-gray: #333;
+            --white: #ffffff;
+            --accent-gold: #DAA520;
+        }
+
+        body {
+            background-color: var(--light-beige);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: var(--dark-gray);
+        }
+
+        header {
+            background-color: var(--olive-green);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .welcome-text {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .lectures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .lecture-card {
+            background-color: var(--white);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 2px solid transparent;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .lecture-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--olive-green);
+            box-shadow: 0 15px 30px rgba(85, 107, 47, 0.15);
+        }
+
+        .lecture-card h3 {
+            color: var(--olive-green);
+            margin-top: 0;
+            font-size: 1.4rem;
+        }
+
+        .lecture-card p {
+            font-size: 0.95rem;
+            color: #666;
+            margin: 15px 0;
+            direction: ltr;
+        }
+
+        .btn-start {
+            background-color: var(--olive-green);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            text-decoration: none;
+            transition: background 0.3s;
+            display: inline-block;
+        }
+
+        .btn-start:hover {
+            background-color: #3d4d22;
+        }
+
+        .badge {
+            background-color: var(--accent-gold);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: #888;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>بوابة اختبارات مبادئ وظائف الأعضاء</h1>
+    <p>Pharmacy Department - First Class</p>
+</header>
+
+<div class="container">
+    <div class="welcome-text">
+        <h2>اختر المحاضرة لبدء الاختبار التفاعلي</h2>
+        <p>كل اختبار يحتوي على 50 سؤالاً بنظام العشوائية والتصحيح المباشر.</p>
+    </div>
+
+    <div class="lectures-grid">
+        <div class="lecture-card">
+            <div>
+                <span class="badge">المحاضرة 1</span>
+                <h3>Cells and Tissues</h3>
+                <p>Cell parts, types of tissues, and transport across cell membrane.</p>
+            </div>
+            <a href="lecture1.html" class="btn-start">ابدأ الاختبار</a>
+        </div>
+
+        <div class="lecture-card">
+            <div>
+                <span class="badge">المحاضرة 2</span>
+                <h3>The Blood</h3>
+                <p>Blood composition, Plasma, RBCs, WBCs, and Platelets.</p>
+            </div>
+            <a href="lecture2.html" class="btn-start">ابدأ الاختبار</a>
+        </div>
+
+        <div class="lecture-card">
+            <div>
+                <span class="badge">المحاضرة 4</span>
+                <h3>Respiratory System</h3>
+                <p>Breathing mechanism, Gas exchange, and Nervous control.</p>
+            </div>
+            <a href="lecture4.html" class="btn-start">ابدأ الاختبار</a>
+        </div>
+
+        <div class="lecture-card">
+            <div>
+                <span class="badge">المحاضرة 5</span>
+                <h3>Digestive System</h3>
+                <p>Gastrointestinal tract, Enzymes, and Support organs.</p>
+            </div>
+            <a href="lecture5.html" class="btn-start">ابدأ الاختبار</a>
+        </div>
+    </div>
+</div>
+
+<footer>
+    &copy; 2026 - بوابة التعلم الذكي للطلبة
+</footer>
+
+</body>
+</html>
