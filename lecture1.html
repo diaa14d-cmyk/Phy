@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار مبادئ وظائف الأعضاء</title>
+    <style>
+        :root {
+            --olive-green: #556B2F;
+            --light-beige: #F5F5DC;
+            --dark-gray: #333;
+            --white: #ffffff;
+            --error-red: #d9534f;
+        }
+
+        body {
+            background-color: var(--light-beige);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--dark-gray);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        #quiz-container {
+            background-color: var(--white);
+            width: 90%;
+            max-width: 600px;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--olive-green);
+            padding-bottom: 10px;
+        }
+
+        .score-board {
+            color: var(--olive-green);
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .question-number {
+            background-color: var(--olive-green);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        h2 {
+            color: var(--olive-green);
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            direction: ltr; /* English Questions */
+        }
+
+        .options-container {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button.option-btn {
+            background-color: var(--white);
+            border: 2px solid var(--olive-green);
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1em;
+            text-align: left;
+            direction: ltr;
+        }
+
+        button.option-btn:hover {
+            background-color: #f0f4e8;
+        }
+
+        #feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            text-align: left;
+            direction: ltr;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .correct-anim { border: 2px solid #28a745 !important; background-color: #d4edda !important; }
+        .wrong-anim { border: 2px solid var(--error-red) !important; background-color: #f8d7da !important; }
+
+        .next-btn {
+            background-color: var(--olive-green);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            display: none;
+            margin: 20px auto 0;
+        }
+
+        #result-screen { display: none; }
+    </style>
+</head>
+<body>
+
+<div id="quiz-container">
+    <div id="game-screen">
+        <div class="header-info">
+            <div class="score-board">النتيجة: <span id="current-score">0</span></div>
+            <div class="question-number">سؤال: <span id="q-count">1</span> / 50</div>
+        </div>
+
+        <h2 id="question-text">Loading question...</h2>
+
+        <div class="options-container" id="options">
+            </div>
+
+        <div id="feedback"></div>
+        <button class="next-btn" id="next-btn" onclick="loadNextQuestion()">السؤال التالي</button>
+    </div>
+
+    <div id="result-screen">
+        <h1 style="color: var(--olive-green);">انتهى الاختبار!</h1>
+        <p id="final-score-text"></p>
+        <button class="next-btn" style="display: block;" onclick="location.reload()">إعادة الاختبار</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        { q: "Physiology is the science that studies the mechanism work of what?", options: ["Body's organs", "Plants only", "Chemicals", "Atmosphere"], correct: 0, page: 2, note: "Physiology is the science that studies the mechanism work of the body's organ." },
+        { q: "What is the basic unit of life on earth?", options: ["Tissue", "Organ", "The Cell", "System"], correct: 2, page: 2, note: "The cell is the smallest living organism and the basic unit of life on earth." },
+        { q: "Which part of the cell holds the genetic material and chromosomes?", options: ["Cytoplasm", "Nucleus", "Lysosomes", "Cell Membrane"], correct: 1, page: 2, note: "The nucleus... holds the genetic material, the chromosomes and chromatin." },
+        { q: "What is referred to as the 'powerhouses' of cells?", options: ["Ribosomes", "Golgi Apparatus", "Mitochondrion", "Endoplasmic Reticulum"], correct: 2, page: 2, note: "Mitochondrion: It is referred as the powerhouses of cells." },
+        { q: "Which part is considered the 'post office' of the cell?", options: ["Nucleus", "Golgi Apparatus", "Ribosomes", "Cell Membrane"], correct: 1, page: 3, note: "People tend to consider the Golgi apparatus the post office of the cell." },
+        { q: "What is the function of Lysosomes?", options: ["Energy production", "Digest and break down food", "Protein synthesis", "RNA storage"], correct: 1, page: 2, note: "Lysosomes: These are digestive centers... help to digest and break down food material." },
+        { q: "The cell membrane is 'semi-permeable', meaning it:", options: ["Blocks everything", "Allows everything", "Allows certain things to pass", "Is made of metal"], correct: 2, page: 2, note: "Semi-permeable membrane which means it allows certain things to pass in and out." },
+        { q: "Which tissue type joins other tissues together?", options: ["Epithelial", "Nervous", "Connective", "Muscle"], correct: 2, page: 4, note: "Connective tissues: This is the tissue which joins other tissues together." },
+        { q: "What type of muscle tissue is found in the heart?", options: ["Skeletal", "Smooth", "Striated", "Cardiac"], correct: 3, page: 4, note: "Cardiac muscle tissue is found in the heart." },
+        { q: "Movement of substances across the membrane WITHOUT energy is:", options: ["Active transport", "Passive transport", "Endocytosis", "Exocytosis"], correct: 1, page: 7, note: "Passive transport is the movement of substances across the membrane without the use of energy." },
+        { q: "What is the main energy molecule used in active transport?", options: ["RNA", "DNA", "ATP", "Glucose"], correct: 2, page: 7, note: "Active transport... using an energy molecule called adenosine triphosphate (ATP)." },
+        { q: "The diffusion of water through a selectively permeable membrane is called:", options: ["Diffusion", "Osmosis", "Filtration", "Active transport"], correct: 1, page: 9, note: "Osmosis is the diffusion of water through a selectively permeable membrane." },
+        { q: "Intracellular Fluid (ICF) makes up about what percentage of total body water?", options: ["20%", "40%", "60%", "80%"], correct: 2, page: 5, note: "The ICF makes up about 60 percent of the total water in the human body." },
+        { q: "A solution with a HIGHER concentration of solutes than the cell is:", options: ["Isotonic", "Hypotonic", "Hypertonic", "Diluted"], correct: 2, page: 10, note: "A solution that has a higher concentration of solutes than another solution is said to be hypertonic." },
+        { q: "In which solution will a cell shrivel (crenate)?", options: ["Hypotonic", "Isotonic", "Hypertonic", "Pure water"], correct: 2, page: 10, note: "Cells in a hypertonic solution will shrivel (crenate)." },
+        { q: "Which process is known as 'Cell Eating'?", options: ["Pinocytosis", "Phagocytosis", "Exocytosis", "Osmosis"], correct: 1, page: 11, note: "Phagocytosis: 'Cell eating' — uptake of large particles or microorganisms." },
+        { q: "The primary active transport example mentioned is:", options: ["Glucose transporter", "Na+/K+ pump", "Osmosis", "CO2 diffusion"], correct: 1, page: 11, note: "Example: Na+/K+ pump (sodium-potassium ATPase) is Primary Active Transport." },
+        { q: "What is the percentage of water in infants?", options: ["50%", "75%", "45%", "90%"], correct: 1, page: 5, note: "Human beings are mostly water, ranging from about 75 percent... in infants." },
+        { q: "Which organ helps maintain homeostasis of body fluids?", options: ["Heart", "Lungs", "Kidneys", "Stomach"], correct: 2, page: 10, note: "Several organs... particularly the kidneys, work to maintain this homeostasis." },
+        { q: "Simple squamous is a type of which tissue?", options: ["Connective", "Epithelial", "Muscle", "Nervous"], correct: 1, page: 3, note: "Epithelial tissues: A-Simple (e.g., Simple squamous)." },
+        { q: "Blood and fat are examples of which tissue?", options: ["Muscle", "Epithelial", "Connective", "Nervous"], correct: 2, page: 4, note: "Examples of connective tissue are: bones... blood and fat." },
+        { q: "Where is protein manufactured in the cell?", options: ["Mitochondria", "Endoplasmic Reticulum", "Lysosomes", "Nucleus"], correct: 1, page: 2, note: "Endoplasmic Reticulum: This is the part where protein is manufactured." },
+        { q: "Extracellular Fluid (ECF) accounts for how much of body water?", options: ["One-half", "Two-thirds", "One-third", "Full amount"], correct: 2, page: 5, note: "The ECF accounts for the other one-third of the body's water content." },
+        { q: "What moves OUT of the cell by passive diffusion?", options: ["Oxygen", "Carbon Dioxide", "Sodium", "Glucose"], correct: 1, page: 8, note: "Carbon dioxide (CO2) diffuses out of the cell because it is more concentrated inside." },
+        { q: "Which transport moves molecules in OPPOSITE directions?", options: ["Symport", "Antiport", "Simple Diffusion", "Osmosis"], correct: 1, page: 11, note: "Antiport (countertransport): Molecules move in opposite directions." },
+        { q: "The term 'physio' in physiology means:", options: ["Science", "Body", "Life", "Movement"], correct: 2, page: 2, note: "physio = life & logy = science." },
+        { q: "Ribosomes translate RNA into:", options: ["DNA", "Lipids", "Proteins", "Sugars"], correct: 2, page: 3, note: "Ribosomes read the RNA and translate it into proteins." },
+        { q: "Interstitual fluid is also known as:", options: ["Plasma", "Cytosol", "Tissue fluid", "Blood"], correct: 2, page: 5, note: "Interstitial fluid (or tissue fluid) is a solution that bathes and surrounds the cells." },
+        { q: "What happens to a cell in a Hypotonic solution?", options: ["Shrivels", "Stays same", "Swell and may burst", "Disappears"], correct: 2, page: 10, note: "Cells in a hypotonic solution will take on too much water and swell, with the risk of eventually bursting." },
+        { q: "Which transport uses energy stored in gradients (indirect ATP)?", options: ["Primary Active", "Secondary Active", "Simple Diffusion", "Osmosis"], correct: 1, page: 11, note: "Secondary Active Transport: Uses the energy stored in gradients established by primary active transport." },
+        { q: "Bone is which type of tissue?", options: ["Nervous", "Connective", "Epithelial", "Muscle"], correct: 1, page: 4, note: "Examples of connective tissue are: bones; tendons; ligaments..." },
+        { q: "What surrounds the nucleus?", options: ["Cell Membrane", "Nuclear Envelope", "Ribosome", "Cytoplasm"], correct: 1, page: 3, note: "Nuclear Envelope: Wall of material surrounding/containing the nucleus." },
+        { q: "What is 'Cell Drinking'?", options: ["Phagocytosis", "Exocytosis", "Pinocytosis", "Osmosis"], correct: 2, page: 11, note: "Pinocytosis: 'Cell drinking' — uptake of extracellular fluid." },
+        { q: "Striated muscle is also known as:", options: ["Involuntary", "Smooth", "Voluntary", "Cardiac"], correct: 2, page: 4, note: "Striated or voluntary muscle tissue." },
+        { q: "Simple columnar tissue is found in:", options: ["G.I.T", "Heart", "Brain", "Skin"], correct: 0, page: 3, note: "Simple: consist of a simple layer of... columnar (G.I.T)." },
+        { q: "Sodium (Na+) enters the cell via:", options: ["Simple Diffusion", "Channel proteins", "Exocytosis", "Osmosis"], correct: 1, page: 9, note: "example... facilitated diffusion to get into a cell via channel proteins is sodium." },
+        { q: "Glucose enters the cell using:", options: ["Carrier proteins", "Simple diffusion", "Phagocytosis", "None"], correct: 0, page: 9, note: "example of facilitated diffusion via a carrier protein is movement of glucose." },
+        { q: "Plasma accounts for what percentage of ECF?", options: ["10%", "20%", "50%", "80%"], correct: 1, page: 5, note: "Approximately 20 percent of the ECF is found in: Blood Plasma." },
+        { q: "Which fluid is the principal component of cytosol?", options: ["ECF", "Plasma", "ICF", "Lymph"], correct: 2, page: 5, note: "The ICF lies within cells and is the principal component of the cytosol/cytoplasm." },
+        { q: "What molecules easily cross the phospholipid bilayer?", options: ["Large polar", "Small non-polar", "Charged ions", "Proteins"], correct: 1, page: 7, note: "only allow small, nonpolar, fat-soluble materials to move across it." },
+        { q: "The Na+/K+ pump moves how many Sodium (Na+) out?", options: ["2", "3", "1", "4"], correct: 1, page: 11, note: "Pumps 3 Na+ out and 2 K+ in." },
+        { q: "Exocytosis is common in secreting:", options: ["Water", "Hormones", "Oxygen", "Salt"], correct: 1, page: 12, note: "Common in secretion of hormones, neurotransmitters..." },
+        { q: "The term 'logy' means:", options: ["Life", "Study/Science", "Organ", "Body"], correct: 1, page: 2, note: "logy = science." },
+        { q: "An average adult male has about how many liters of ICF?", options: ["5L", "11L", "25L", "40L"], correct: 2, page: 5, note: "ICF accounts for about 25 liters (seven gallons) of fluid." },
+        { q: "Which of these is NOT a connective tissue?", options: ["Blood", "Bone", "Nerve", "Fat"], correct: 2, page: 4, note: "Examples: bones, tendons, ligaments, cartilage, blood, fat (Nerve is its own type)." },
+        { q: "The movement of molecules 'down' a gradient means:", options: ["Low to High", "High to Low", "No movement", "Using ATP"], correct: 1, page: 8, note: "move from an area of greater concentration to lower concentration, they are said to move down their concentration gradient." },
+        { q: "Which tissue is composed of several layers?", options: ["Simple", "Compound", "Single", "Thin"], correct: 1, page: 3, note: "Compound: which is composed of several layers." },
+        { q: "What is found in the arms and legs?", options: ["Smooth muscle", "Cardiac muscle", "Striated/Voluntary muscle", "Epithelial only"], correct: 2, page: 4, note: "Striated or voluntary muscle tissue: which is the type found in the arms and legs." },
+        { q: "Water-soluble materials need assistance because they are repelled by:", options: ["Hydrophilic heads", "Hydrophobic tails", "Nucleus", "Cytoplasm"], correct: 1, page: 7, note: "repelled by the hydrophobic tails in the middle of the cell membrane." },
+        { q: "What is the average amount of Interstitial fluid?", options: ["2L", "5L", "11L", "25L"], correct: 2, page: 5, note: "On average, a person has about 11 liters of interstitial fluid." }
+    ];
+
+    let shuffledQuestions = [];
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    function initQuiz() {
+        shuffledQuestions = questions.sort(() => Math.random() - 0.5);
+        currentQuestionIndex = 0;
+        score = 0;
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const q = shuffledQuestions[currentQuestionIndex];
+        document.getElementById("q-count").innerText = currentQuestionIndex + 1;
+        document.getElementById("question-text").innerText = q.q;
+        document.getElementById("current-score").innerText = score;
+        
+        const optionsContainer = document.getElementById("options");
+        optionsContainer.innerHTML = "";
+        document.getElementById("feedback").style.display = "none";
+        document.getElementById("next-btn").style.display = "none";
+
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement("button");
+            btn.classList.add("option-btn");
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(index, q.correct, q.note, q.page);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selected, correct, note, page) {
+        const buttons = document.querySelectorAll(".option-btn");
+        const feedback = document.getElementById("feedback");
+        
+        buttons.forEach(btn => btn.disabled = true);
+
+        if (selected === correct) {
+            buttons[selected].classList.add("correct-anim");
+            score++;
+            document.getElementById("current-score").innerText = score;
+        } else {
+            buttons[selected].classList.add("wrong-anim");
+            buttons[correct].classList.add("correct-anim");
+            feedback.style.display = "block";
+            feedback.style.backgroundColor = "#fff3cd";
+            feedback.style.border = "1px solid #ffeeba";
+            feedback.innerHTML = `<strong>خطأ!</strong><br>${note}<br><small>(المصدر: صفحة رقم ${page})</small>`;
+        }
+
+        document.getElementById("next-btn").style.display = "block";
+    }
+
+    function loadNextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < shuffledQuestions.length) {
+            showQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        document.getElementById("game-screen").style.display = "none";
+        document.getElementById("result-screen").style.display = "block";
+        document.getElementById("final-score-text").innerText = `لقد أجبت على ${score} من أصل 50 سؤال بشكل صحيح!`;
+    }
+
+    window.onload = initQuiz;
+</script>
+
+</body>
+</html>

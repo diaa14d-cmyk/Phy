@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار فسلجة الدم - Lecture 2</title>
+    <style>
+        :root {
+            --olive-green: #556B2F;
+            --light-beige: #F5F5DC;
+            --dark-gray: #333;
+            --white: #ffffff;
+            --error-red: #d9534f;
+        }
+
+        body {
+            background-color: var(--light-beige);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--dark-gray);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        #quiz-container {
+            background-color: var(--white);
+            width: 90%;
+            max-width: 650px;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--olive-green);
+            padding-bottom: 10px;
+        }
+
+        .score-board {
+            color: var(--olive-green);
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .question-number {
+            background-color: var(--olive-green);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        h2 {
+            color: var(--olive-green);
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            direction: ltr;
+        }
+
+        .options-container {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button.option-btn {
+            background-color: var(--white);
+            border: 2px solid var(--olive-green);
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1em;
+            text-align: left;
+            direction: ltr;
+        }
+
+        button.option-btn:hover:not([disabled]) {
+            background-color: #f0f4e8;
+        }
+
+        #feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            text-align: left;
+            direction: ltr;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .correct-anim { border: 2px solid #28a745 !important; background-color: #d4edda !important; }
+        .wrong-anim { border: 2px solid var(--error-red) !important; background-color: #f8d7da !important; }
+
+        .next-btn {
+            background-color: var(--olive-green);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            display: none;
+            margin: 20px auto 0;
+        }
+
+        #result-screen { display: none; }
+    </style>
+</head>
+<body>
+
+<div id="quiz-container">
+    <div id="game-screen">
+        <div class="header-info">
+            <div class="score-board">النتيجة: <span id="current-score">0</span></div>
+            <div class="question-number">سؤال: <span id="q-count">1</span> / 50</div>
+        </div>
+
+        <h2 id="question-text">جاري تحميل السؤال...</h2>
+
+        <div class="options-container" id="options"></div>
+
+        <div id="feedback"></div>
+        <button class="next-btn" id="next-btn" onclick="loadNextQuestion()">السؤال التالي</button>
+    </div>
+
+    <div id="result-screen">
+        <h1 style="color: var(--olive-green);">انتهى اختبار الدم!</h1>
+        <p id="final-score-text"></p>
+        <button class="next-btn" style="display: block;" onclick="location.reload()">إعادة الاختبار</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        { q: "Blood is considered a specialized form of which tissue?", options: ["Nervous tissue", "Muscle tissue", "Connective tissue", "Epithelial tissue"], correct: 2, page: 2, note: "In terms of anatomy and histology, blood is considered a specialized form of connective tissue." },
+        { q: "What is the fluid portion of blood called?", options: ["Serum", "Plasma", "Cytosol", "Lymph"], correct: 1, page: 2, note: "Blood has four main components: plasma, RBCs, WBCs, and platelets." },
+        { q: "The process of blood cell production in bone marrow is called:", options: ["Hemolysis", "Hematopoiesis", "Phagocytosis", "Homeostasis"], correct: 1, page: 2, note: "Blood cells are made in the bone marrow in a process called hematopoiesis." },
+        { q: "What percentage of whole blood is typically plasma?", options: ["45%", "92%", "55%", "1%"], correct: 2, page: 2, note: "Whole blood is a mixture of about 55% plasma and 45% blood cells." },
+        { q: "What is the normal pH range of human blood?", options: ["7.0 - 7.2", "7.35 - 7.45", "6.8 - 7.0", "7.5 - 8.0"], correct: 1, page: 2, note: "Blood pH is regulated to stay within the narrow range of 7.35 to 7.45." },
+        { q: "Which component of blood is responsible for clotting to prevent loss?", options: ["Red blood cells", "Plasma", "Platelets", "Hormones"], correct: 2, page: 3, note: "Functions of blood include forming blood clots to prevent excess blood loss (via platelets)." },
+        { q: "What is the main determinant of blood color?", options: ["Plasma", "Hemoglobin", "WBCs", "Nutrients"], correct: 1, page: 5, note: "Hemoglobin is the principal determinant of the color of blood." },
+        { q: "Which organ produces the proteinaceous component of blood (clotting proteins)?", options: ["Kidneys", "Liver", "Spleen", "Heart"], correct: 1, page: 2, note: "The proteinaceous component of blood (including clotting proteins) is produced by the liver." },
+        { q: "What is the percentage of water in plasma?", options: ["55%", "92%", "8%", "45%"], correct: 1, page: 4, note: "Plasma is essentially an aqueous solution containing 92% water." },
+        { q: "Plasma without clotting proteins is called:", options: ["Whole blood", "Serum", "ECF", "Lymph"], correct: 1, page: 4, note: "The term serum refers to plasma from which the clotting proteins have been removed." },
+        { q: "What is the scientific name for Red Blood Cells?", options: ["Leukocytes", "Thrombocytes", "Erythrocytes", "Monocytes"], correct: 2, page: 4, note: "Red Blood Cells (also called erythrocytes or RBCs)." },
+        { q: "The production of RBCs is specifically called:", options: ["Myelopoiesis", "Erythropoiesis", "Leukopoiesis", "Hematopoiesis"], correct: 1, page: 2, note: "Hematopoiesis includes erythropoiesis, the production of red blood cells." },
+        { q: "Which hormone controls the production of red blood cells?", options: ["Insulin", "Erythropoietin (EPO)", "Thyroxine", "Adrenaline"], correct: 1, page: 4, note: "Production of RBCs is controlled by erythropoietin (EPO), produced primarily by the kidneys." },
+        { q: "What is the average lifespan of a Red Blood Cell?", options: ["7 days", "30 days", "120 days", "1 year"], correct: 2, page: 4, note: "It survives an average of 120 days." },
+        { q: "Why are Red Blood Cells flexible enough to fit through small vessels?", options: ["They are very small", "They lack a nucleus", "They are made of liquid", "They have many mitochondria"], correct: 1, page: 4, note: "The lack of a nucleus makes a red blood cell more flexible." },
+        { q: "How many heme groups are in one hemoglobin molecule?", options: ["One", "Two", "Three", "Four"], correct: 3, page: 5, note: "Each molecule has four heme groups." },
+        { q: "What is the scientific name for White Blood Cells?", options: ["Erythrocytes", "Leukocytes", "Thrombocytes", "Plasma"], correct: 1, page: 5, note: "White Blood Cells (also called leukocytes)." },
+        { q: "WBCs make up approximately what percentage of total blood?", options: ["45%", "55%", "1%", "10%"], correct: 2, page: 5, note: "They are far fewer in number than RBCs, accounting for about 1% of the blood." },
+        { q: "Which type of WBC is the most numerous in the body (majority)?", options: ["Basophils", "Eosinophils", "Neutrophils", "Monocytes"], correct: 2, page: 5, note: "Neutrophils: These represent the majority of white blood cells in the body." },
+        { q: "Which cells are responsible for producing antibodies?", options: ["T cells", "B cells", "Neutrophils", "Platelets"], correct: 1, page: 5, note: "B cells produce antibodies to help the immune system mount a response to infection." },
+        { q: "Which WBCs are typically increased after an allergic reaction?", options: ["Basophils", "Monocytes", "Erythrocytes", "T cells"], correct: 0, page: 5, note: "Basophils are typically present in increased numbers after an allergic reaction." },
+        { q: "Which cells respond specifically to parasite infections?", options: ["B cells", "Neutrophils", "Eosinophils", "Platelets"], correct: 2, page: 5, note: "Eosinophils: These are responsible for responding to infections that parasites cause." },
+        { q: "What is the main function of Monocytes?", options: ["Carry oxygen", "Clot blood", "Fight chronic infections", "Produce insulin"], correct: 2, page: 6, note: "Monocytes... are present when the body fights off chronic infections." },
+        { q: "Platelets are also known as:", options: ["Leukocytes", "Thrombocytes", "Erythrocytes", "Granulocytes"], correct: 1, page: 6, note: "Platelets (also called thrombocytes)." },
+        { q: "Are platelets actual cells?", options: ["Yes", "No, they are cell fragments", "Only in children", "Only in males"], correct: 1, page: 6, note: "Unlike red and white blood cells, platelets are not actually cells but rather small cell fragments." },
+        { q: "What is the normal range for platelets per microliter?", options: ["4-11 thousand", "4-6 million", "200,000-500,000", "55%"], correct: 2, page: 6, note: "Platelets: 200,000-500,000 thrombocytes." },
+        { q: "Which protein forms the 'scaffold' for a blood clot?", options: ["Albumin", "Hemoglobin", "Fibrin", "Globulin"], correct: 2, page: 6, note: "Fibrin also forms the initial scaffolding upon which new tissue develops." },
+        { q: "In adults, where is RBC production limited to?", options: ["All bones", "Larger bones", "Liver", "Spleen"], correct: 1, page: 2, note: "As adults, red blood cell production is limited to the larger bones." },
+        { q: "What color is venous blood (deoxygenated)?", options: ["Bright red", "Dark red", "Blue", "Yellow"], correct: 1, page: 2, note: "Blood is bright red when oxygenated and dark red when it is deoxygenated." },
+        { q: "What color is plasma by itself?", options: ["Clear", "Red", "Straw-yellow", "Green"], correct: 2, page: 4, note: "Blood plasma... by itself is straw-yellow in color." },
+        { q: "Which organ regulates the watery fraction of blood?", options: ["Liver", "Hypothalamus", "Bone marrow", "Lungs"], correct: 1, page: 2, note: "The watery fraction is regulated by the hypothalamus." },
+        { q: "What is the normal range of WBCs (Leukocytes)?", options: ["200-500 thousand", "4.7-6.1 million", "4,000-11,000", "1-2%"], correct: 2, page: 5, note: "White Blood Cells: 4,000-11,000 leukocytes." },
+        { q: "Which WBC type acts as 'scavengers' to destroy bacteria?", options: ["B cells", "Neutrophils", "Eosinophils", "Basophils"], correct: 1, page: 5, note: "Neutrophils act as scavengers, helping surround and destroy bacteria." },
+        { q: "T cells (T-lymphocytes) primarily function to:", options: ["Produce antibodies", "Clot blood", "Remove infection-causing cells", "Carry CO2"], correct: 2, page: 6, note: "T cells help recognize and remove infection-causing cells." },
+        { q: "Which electrolyte is MOST common in plasma?", options: ["Potassium", "Sodium", "Magnesium", "Iron"], correct: 1, page: 4, note: "Various electrolytes (mainly sodium and chloride)." },
+        { q: "The term 'hemo-' or 'hemato-' comes from which Greek word?", options: ["Haima", "Hydra", "Hema", "Holo"], correct: 0, page: 2, note: "from the Greek word (haima) for 'blood'." },
+        { q: "Red blood cell production is called myelopoiesis.", options: ["True", "False"], correct: 1, page: 2, note: "False. Erythropoiesis is RBC production; Myelopoiesis is WBC and platelet production." },
+        { q: "Blood transports metabolic waste products AWAY from cells.", options: ["True", "False"], correct: 0, page: 2, note: "True. It transports metabolic waste products away from those same cells." },
+        { q: "RBCs make up what percentage of blood volume?", options: ["1%", "55%", "40% to 45%", "92%"], correct: 2, page: 4, note: "RBCs account for about 40% to 45% of blood volume." },
+        { q: "How long does it take for immature cells in bone marrow to mature into RBCs?", options: ["1 day", "7 days", "120 days", "48 hours"], correct: 1, page: 4, note: "after approximately 7 days of maturation, are released into the bloodstream." },
+        { q: "Which of these is a function of blood regarding temperature?", options: ["Increases heat", "Regulating body temperature", "Freezing pathogens", "None"], correct: 1, page: 3, note: "One function is regulating body temperature." },
+        { q: "Eosinophils represent around 2-8% of total WBC count.", options: ["True", "False"], correct: 1, page: 6, note: "False. Monocytes make up around 2-8%." },
+        { q: "Whole blood is circulated by the pumping action of the:", options: ["Lungs", "Liver", "Heart", "Kidneys"], correct: 2, page: 2, note: "Blood is circulated... by the pumping action of the heart." },
+        { q: "Immature blood cells start their life in the:", options: ["Heart", "Bone marrow", "Spleen", "Veins"], correct: 1, page: 4, note: "start as immature cells in the bone marrow." },
+        { q: "Albumin is a type of plasma protein.", options: ["True", "False"], correct: 0, page: 4, note: "True. Serum albumin is an important component of plasma." },
+        { q: "What does Hemoglobin carry to the lungs?", options: ["Oxygen", "Carbon Dioxide", "Nutrients", "Platelets"], correct: 1, page: 5, note: "returns carbon dioxide to the lungs for exhalation." },
+        { q: "Basophils represent more than 10% of WBCs.", options: ["True", "False"], correct: 1, page: 5, note: "False. These represent less than 1% of white blood cells." },
+        { q: "Which category does NOT belong to WBCs?", options: ["Granulocytes", "Lymphocytes", "Monocytes", "Erythrocytes"], correct: 3, page: 5, note: "Health professionals identified three categories: granulocytes, lymphocytes, and monocytes." },
+        { q: "Granulocytes contain small granules containing:", options: ["Water", "Proteins", "DNA", "Oxygen"], correct: 1, page: 5, note: "Granulocytes are white blood cells that have small granules containing proteins." },
+        { q: "The biconcave shape of RBCs provides a flattened center.", options: ["True", "False"], correct: 0, page: 4, note: "True. The shape of a red blood cell is a biconcave disk with a flattened center." }
+    ];
+
+    let shuffledQuestions = [];
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    function initQuiz() {
+        shuffledQuestions = questions.sort(() => Math.random() - 0.5);
+        currentQuestionIndex = 0;
+        score = 0;
+        document.getElementById("game-screen").style.display = "block";
+        document.getElementById("result-screen").style.display = "none";
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const q = shuffledQuestions[currentQuestionIndex];
+        document.getElementById("q-count").innerText = currentQuestionIndex + 1;
+        document.getElementById("question-text").innerText = q.q;
+        document.getElementById("current-score").innerText = score;
+        
+        const optionsContainer = document.getElementById("options");
+        optionsContainer.innerHTML = "";
+        document.getElementById("feedback").style.display = "none";
+        document.getElementById("next-btn").style.display = "none";
+
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement("button");
+            btn.classList.add("option-btn");
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(index, q.correct, q.note, q.page);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selected, correct, note, page) {
+        const buttons = document.querySelectorAll(".option-btn");
+        const feedback = document.getElementById("feedback");
+        
+        buttons.forEach(btn => btn.disabled = true);
+
+        if (selected === correct) {
+            buttons[selected].classList.add("correct-anim");
+            score++;
+            document.getElementById("current-score").innerText = score;
+        } else {
+            buttons[selected].classList.add("wrong-anim");
+            buttons[correct].classList.add("correct-anim");
+            feedback.style.display = "block";
+            feedback.style.backgroundColor = "#fff3cd";
+            feedback.style.border = "1px solid #ffeeba";
+            feedback.innerHTML = `<strong>الإجابة الصحيحة كانت: ${shuffledQuestions[currentQuestionIndex].options[correct]}</strong><br>${note}<br><small>(المصدر: صفحة رقم ${page})</small>`;
+        }
+
+        document.getElementById("next-btn").style.display = "block";
+    }
+
+    function loadNextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < shuffledQuestions.length) {
+            showQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        document.getElementById("game-screen").style.display = "none";
+        document.getElementById("result-screen").style.display = "block";
+        document.getElementById("final-score-text").innerText = `لقد حصلت على ${score} من أصل 50 درجة في اختبار المحاضرة الثانية!`;
+    }
+
+    window.onload = initQuiz;
+</script>
+
+</body>
+</html>

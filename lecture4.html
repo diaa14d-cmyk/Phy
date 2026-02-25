@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار الجهاز التنفسي - Lecture 4</title>
+    <style>
+        :root {
+            --olive-green: #556B2F;
+            --light-beige: #F5F5DC;
+            --dark-gray: #333;
+            --white: #ffffff;
+            --error-red: #d9534f;
+        }
+
+        body {
+            background-color: var(--light-beige);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--dark-gray);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        #quiz-container {
+            background-color: var(--white);
+            width: 90%;
+            max-width: 650px;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--olive-green);
+            padding-bottom: 10px;
+        }
+
+        .score-board {
+            color: var(--olive-green);
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .question-number {
+            background-color: var(--olive-green);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        h2 {
+            color: var(--olive-green);
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            direction: ltr;
+        }
+
+        .options-container {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button.option-btn {
+            background-color: var(--white);
+            border: 2px solid var(--olive-green);
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1em;
+            text-align: left;
+            direction: ltr;
+        }
+
+        button.option-btn:hover:not([disabled]) {
+            background-color: #f0f4e8;
+        }
+
+        #feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            text-align: left;
+            direction: ltr;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .correct-anim { border: 2px solid #28a745 !important; background-color: #d4edda !important; }
+        .wrong-anim { border: 2px solid var(--error-red) !important; background-color: #f8d7da !important; }
+
+        .next-btn {
+            background-color: var(--olive-green);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            display: none;
+            margin: 20px auto 0;
+        }
+
+        #result-screen { display: none; }
+    </style>
+</head>
+<body>
+
+<div id="quiz-container">
+    <div id="game-screen">
+        <div class="header-info">
+            <div class="score-board">النتيجة: <span id="current-score">0</span></div>
+            <div class="question-number">سؤال: <span id="q-count">1</span> / 50</div>
+        </div>
+
+        <h2 id="question-text">جاري تحميل السؤال...</h2>
+
+        <div class="options-container" id="options"></div>
+
+        <div id="feedback"></div>
+        <button class="next-btn" id="next-btn" onclick="loadNextQuestion()">السؤال التالي</button>
+    </div>
+
+    <div id="result-screen">
+        <h1 style="color: var(--olive-green);">انتهى اختبار الجهاز التنفسي!</h1>
+        <p id="final-score-text"></p>
+        <button class="next-btn" style="display: block;" onclick="location.reload()">إعادة الاختبار</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        { q: "What is the primary function of the respiratory system?", options: ["Pumping blood", "Supplying oxygen and removing carbon dioxide", "Digesting food", "Filtering waste from blood"], correct: 1, page: 2, note: "The respiratory system is responsible for breathing and for supplying oxygen to the body while removing carbon dioxide." },
+        { q: "Which part of the respiratory system filters dust and germs using hairs and mucus?", options: ["Pharynx", "Trachea", "Nose and Nasal Cavity", "Alveoli"], correct: 2, page: 2, note: "The nasal cavity filters dust and germs using tiny hairs and mucus." },
+        { q: "The Pharynx is a common passageway for:", options: ["Air only", "Food only", "Both air and food", "Blood"], correct: 2, page: 2, note: "Pharynx (Throat): A common passageway for both air and food." },
+        { q: "Which structure is known as the 'Voice Box'?", options: ["Pharynx", "Larynx", "Trachea", "Bronchi"], correct: 1, page: 2, note: "Larynx (Voice Box): Allows air to pass into the trachea and produces sound." },
+        { q: "The 'Windpipe' that leads air to the lungs is the:", options: ["Esophagus", "Bronchi", "Trachea", "Larynx"], correct: 2, page: 2, note: "Trachea (Windpipe): A tube that leads air into the lungs." },
+        { q: "Into which structures does the trachea divide?", options: ["Alveoli", "Bronchi", "Larynx", "Capillaries"], correct: 1, page: 3, note: "The trachea divides into two tubes called bronchi, one for each lung." },
+        { q: "What are the small air sacs where gas exchange occurs?", options: ["Bronchioles", "Alveoli", "Bronchi", "Pleura"], correct: 1, page: 3, note: "Alveoli: Tiny air sacs where the exchange of oxygen and carbon dioxide takes place." },
+        { q: "Which lung is slightly smaller to make room for the heart?", options: ["Right lung", "Left lung", "Both are equal", "The middle lung"], correct: 1, page: 3, note: "The left lung is slightly smaller to make room for the heart." },
+        { q: "The right lung has how many lobes?", options: ["1", "2", "3", "4"], correct: 2, page: 3, note: "The right lung has three lobes." },
+        { q: "What is the primary muscle responsible for breathing?", options: ["Intercostal muscle", "Diaphragm", "Abdominal muscle", "Cardiac muscle"], correct: 1, page: 3, note: "Diaphragm: A large, dome-shaped muscle located at the base of the lungs." },
+        { q: "Inhalation is the process of:", options: ["Breathing out", "Breathing in", "Holding breath", "Swallowing"], correct: 1, page: 3, note: "Inhalation (Inspiration): The process of breathing in air." },
+        { q: "During inhalation, what happens to the diaphragm?", options: ["It relaxes and moves up", "It contracts and moves downward", "It stays still", "It disappears"], correct: 1, page: 3, note: "During inhalation, the diaphragm contracts and moves downward." },
+        { q: "What happens to the thoracic cavity volume during inhalation?", options: ["It decreases", "It increases", "It stays the same", "It collapses"], correct: 1, page: 3, note: "This increases the volume of the thoracic cavity." },
+        { q: "Exhalation is primarily a ______ process during normal rest.", options: ["Active", "Passive", "Forced", "Chemical"], correct: 1, page: 4, note: "Exhalation (Expiration) is mostly a passive process during normal breathing." },
+        { q: "Where does gas exchange between air and blood occur?", options: ["Trachea", "Bronchi", "Alveoli", "Nose"], correct: 2, page: 4, note: "Gas exchange occurs in the alveoli." },
+        { q: "By which process do oxygen and carbon dioxide move across membranes?", options: ["Active transport", "Diffusion", "Osmosis", "Endocytosis"], correct: 1, page: 4, note: "Oxygen and carbon dioxide move through a process called diffusion." },
+        { q: "Oxygen moves from the alveoli into the ______.", options: ["Cells", "Capillaries", "Bronchi", "Larynx"], correct: 1, page: 4, note: "Oxygen diffuses from the alveoli into the blood in the surrounding capillaries." },
+        { q: "Carbon dioxide moves from the blood into the ______ for exhalation.", options: ["Tissues", "Alveoli", "Heart", "Stomach"], correct: 1, page: 4, note: "Carbon dioxide diffuses from the blood into the alveoli to be exhaled." },
+        { q: "Breathing is mainly an ______ process controlled by the nervous system.", options: ["Voluntary", "Automatic", "Insignificant", "Optional"], correct: 1, page: 5, note: "Breathing... is mainly an automatic process controlled by the nervous system." },
+        { q: "Where is the medullary respiratory center located?", options: ["Cerebrum", "Medulla oblongata", "Cerebellum", "Spinal cord"], correct: 1, page: 5, note: "The nervous control of breathing is regulated by centers in the brainstem, mainly in the medulla oblongata." },
+        { q: "The Inspiratory Center sends signals to which muscles?", options: ["Heart and stomach", "Diaphragm and external intercostals", "Biceps", "Leg muscles"], correct: 1, page: 5, note: "Sends signals to the diaphragm and external intercostal muscles." },
+        { q: "Which center becomes active during forced exhalation (like coughing)?", options: ["Inspiratory Center", "Expiratory Center", "Pneumotaxic Center", "Apneustic Center"], correct: 1, page: 6, note: "Expiratory Center: Becomes active during forced exhalation, such as during exercise or coughing." },
+        { q: "What do chemoreceptors detect in the blood?", options: ["Sugar levels", "Chemical composition (CO2, pH, O2)", "Blood pressure", "Temperature"], correct: 1, page: 6, note: "Chemoreceptors detect changes in the chemical composition of blood and cerebrospinal fluid." },
+        { q: "Central chemoreceptors are located in the:", options: ["Carotid bodies", "Aortic bodies", "Medulla oblongata", "Lungs"], correct: 2, page: 6, note: "Central Chemoreceptors: Located in the medulla oblongata." },
+        { q: "Which chemical's increase stimulates faster and deeper breathing?", options: ["Oxygen", "Carbon dioxide (CO2)", "Nitrogen", "Helium"], correct: 1, page: 6, note: "Increased CO2 levels stimulate faster and deeper breathing." },
+        { q: "Peripheral chemoreceptors are located in the:", options: ["Brain", "Carotid and aortic bodies", "Alveoli", "Trachea"], correct: 1, page: 6, note: "Peripheral Chemoreceptors: Located in the carotid bodies and aortic bodies." },
+        { q: "The upper respiratory tract includes the Pharynx.", options: ["True", "False"], correct: 0, page: 2, note: "True. Upper Respiratory Tract: Nose/Nasal Cavity and Pharynx." },
+        { q: "The lower respiratory tract starts with the Larynx.", options: ["True", "False"], correct: 0, page: 2, note: "True. Lower Respiratory Tract includes Larynx, Trachea, Bronchi, etc." },
+        { q: "The Left lung has three lobes.", options: ["True", "False"], correct: 1, page: 3, note: "False. The left lung has two lobes, while the right has three." },
+        { q: "Alveoli are surrounded by a network of capillaries.", options: ["True", "False"], correct: 0, page: 3, note: "True. Alveoli are surrounded by a network of tiny blood vessels called capillaries." },
+        { q: "Internal intercostal muscles are used during normal inhalation.", options: ["True", "False"], correct: 1, page: 3, note: "False. Normal inhalation uses the diaphragm and external intercostal muscles." },
+        { q: "Air moves into the lungs because lung pressure becomes lower than atmospheric pressure.", options: ["True", "False"], correct: 0, page: 3, note: "True. Air flows into the lungs to equalize the pressure." },
+        { q: "Exhalation involves the diaphragm contracting.", options: ["True", "False"], correct: 1, page: 4, note: "False. During exhalation, the diaphragm relaxes and moves upward." },
+        { q: "Oxygen is necessary for cells to produce energy.", options: ["True", "False"], correct: 0, page: 2, note: "True. Without oxygen, cells cannot produce the energy needed for survival." },
+        { q: "The respiratory system helps regulate blood pH through CO2 removal.", options: ["True", "False"], correct: 0, page: 6, note: "True. Chemoreceptors adjust breathing based on CO2 and pH levels." },
+        { q: "Forced exhalation is a passive process.", options: ["True", "False"], correct: 1, page: 6, note: "False. Forced exhalation (e.g., coughing) involves active muscle use." },
+        { q: "Bronchioles are larger than Bronchi.", options: ["True", "False"], correct: 1, page: 3, note: "False. Bronchi divide into smaller tubes called bronchioles." },
+        { q: "The pleura is a double-layered membrane surrounding the lungs.", options: ["True", "False"], correct: 0, page: 3, note: "True. Each lung is enclosed in a double-layered membrane called the pleura." },
+        { q: "Sound is produced in the Pharynx.", options: ["True", "False"], correct: 1, page: 2, note: "False. Sound is produced in the Larynx (Voice Box)." },
+        { q: "Peripheral chemoreceptors respond mainly to high oxygen levels.", options: ["True", "False"], correct: 1, page: 6, note: "False. They respond mainly to LOW oxygen levels." },
+        { q: "The nasal cavity warms and moistens inhaled air.", options: ["True", "False"], correct: 0, page: 2, note: "True. It also warms and moistens the air." },
+        { q: "Breathing can be performed voluntarily to some extent.", options: ["True", "False"], correct: 0, page: 5, note: "True. Although it can be performed voluntarily, it is mainly automatic." },
+        { q: "The Expiratory Center is mostly inactive during normal breathing.", options: ["True", "False"], correct: 0, page: 6, note: "True. It is mostly inactive during normal quiet breathing." },
+        { q: "Gas exchange in the lungs is known as 'Internal Respiration'.", options: ["True", "False"], correct: 1, page: 4, note: "Note: Exchange in the lungs is usually called External Respiration (Exchange with blood is Alveolar gas exchange)." },
+        { q: "The diaphragm is dome-shaped when relaxed.", options: ["True", "False"], correct: 0, page: 4, note: "True. It relaxes and moves upward, returning to its dome shape." },
+        { q: "The trachea is located behind the esophagus.", options: ["True", "False"], correct: 1, page: 2, note: "Note: The trachea is generally anterior to (in front of) the esophagus." },
+        { q: "Mucus in the nasal cavity helps trap germs.", options: ["True", "False"], correct: 0, page: 2, note: "True. It filters dust and germs using hairs and mucus." },
+        { q: "Diffusion is a movement from low concentration to high concentration.", options: ["True", "False"], correct: 1, page: 4, note: "False. Diffusion moves substances from higher concentration to lower concentration." },
+        { q: "The Pons also contains respiratory control centers.", options: ["True", "False"], correct: 0, page: 5, note: "True. Control centers are located in the medulla oblongata and the pons." },
+        { q: "Exercise increases the demand for oxygen.", options: ["True", "False"], correct: 0, page: 5, note: "True. Breathing changes according to needs, such as during exercise." }
+    ];
+
+    let shuffledQuestions = [];
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    function initQuiz() {
+        shuffledQuestions = questions.sort(() => Math.random() - 0.5);
+        currentQuestionIndex = 0;
+        score = 0;
+        document.getElementById("game-screen").style.display = "block";
+        document.getElementById("result-screen").style.display = "none";
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const q = shuffledQuestions[currentQuestionIndex];
+        document.getElementById("q-count").innerText = currentQuestionIndex + 1;
+        document.getElementById("question-text").innerText = q.q;
+        document.getElementById("current-score").innerText = score;
+        
+        const optionsContainer = document.getElementById("options");
+        optionsContainer.innerHTML = "";
+        document.getElementById("feedback").style.display = "none";
+        document.getElementById("next-btn").style.display = "none";
+
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement("button");
+            btn.classList.add("option-btn");
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(index, q.correct, q.note, q.page);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selected, correct, note, page) {
+        const buttons = document.querySelectorAll(".option-btn");
+        const feedback = document.getElementById("feedback");
+        
+        buttons.forEach(btn => btn.disabled = true);
+
+        if (selected === correct) {
+            buttons[selected].classList.add("correct-anim");
+            score++;
+            document.getElementById("current-score").innerText = score;
+        } else {
+            buttons[selected].classList.add("wrong-anim");
+            buttons[correct].classList.add("correct-anim");
+            feedback.style.display = "block";
+            feedback.style.backgroundColor = "#fff3cd";
+            feedback.style.border = "1px solid #ffeeba";
+            feedback.innerHTML = `<strong>خطأ! الإجابة هي: ${shuffledQuestions[currentQuestionIndex].options[correct]}</strong><br>${note}<br><small>(المصدر: صفحة رقم ${page})</small>`;
+        }
+
+        document.getElementById("next-btn").style.display = "block";
+    }
+
+    function loadNextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < shuffledQuestions.length) {
+            showQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        document.getElementById("game-screen").style.display = "none";
+        document.getElementById("result-screen").style.display = "block";
+        document.getElementById("final-score-text").innerText = `انتهى الاختبار! نتيجتك هي ${score} من 50.`;
+    }
+
+    window.onload = initQuiz;
+</script>
+
+</body>
+</html>
