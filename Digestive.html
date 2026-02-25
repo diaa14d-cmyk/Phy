@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار الجهاز الهضمي - Lecture 5</title>
+    <style>
+        :root {
+            --olive-green: #556B2F;
+            --light-beige: #F5F5DC;
+            --dark-gray: #333;
+            --white: #ffffff;
+            --error-red: #d9534f;
+        }
+
+        body {
+            background-color: var(--light-beige);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--dark-gray);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        #quiz-container {
+            background-color: var(--white);
+            width: 90%;
+            max-width: 650px;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--olive-green);
+            padding-bottom: 10px;
+        }
+
+        .score-board {
+            color: var(--olive-green);
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .question-number {
+            background-color: var(--olive-green);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        h2 {
+            color: var(--olive-green);
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            direction: ltr;
+        }
+
+        .options-container {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button.option-btn {
+            background-color: var(--white);
+            border: 2px solid var(--olive-green);
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1em;
+            text-align: left;
+            direction: ltr;
+        }
+
+        button.option-btn:hover:not([disabled]) {
+            background-color: #f0f4e8;
+        }
+
+        #feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            text-align: left;
+            direction: ltr;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .correct-anim { border: 2px solid #28a745 !important; background-color: #d4edda !important; }
+        .wrong-anim { border: 2px solid var(--error-red) !important; background-color: #f8d7da !important; }
+
+        .next-btn {
+            background-color: var(--olive-green);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            display: none;
+            margin: 20px auto 0;
+        }
+
+        #result-screen { display: none; }
+    </style>
+</head>
+<body>
+
+<div id="quiz-container">
+    <div id="game-screen">
+        <div class="header-info">
+            <div class="score-board">النتيجة: <span id="current-score">0</span></div>
+            <div class="question-number">سؤال: <span id="q-count">1</span> / 50</div>
+        </div>
+
+        <h2 id="question-text">جاري تحميل السؤال...</h2>
+
+        <div class="options-container" id="options"></div>
+
+        <div id="feedback"></div>
+        <button class="next-btn" id="next-btn" onclick="loadNextQuestion()">السؤال التالي</button>
+    </div>
+
+    <div id="result-screen">
+        <h1 style="color: var(--olive-green);">انتهى اختبار الجهاز الهضمي!</h1>
+        <p id="final-score-text"></p>
+        <button class="next-btn" style="display: block;" onclick="location.reload()">إعادة الاختبار</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        { q: "What does the term 'digestion' describe?", options: ["Pumping blood", "Process that enables nutrients to enter the body", "Filtering air", "Muscle contraction"], correct: 1, page: 1, note: "Digestion describes the complex process that enables the nutrients in food to enter the body and its cells." },
+        { q: "How long is the human gastrointestinal tract (alimentary canal) in adults?", options: ["5 meters", "9 meters (30 feet)", "15 meters", "2 meters"], correct: 1, page: 1, note: "The human gastrointestinal tract, also called the alimentary canal, is around 30 feet (9 meters) long in adults." },
+        { q: "Which of these is considered a 'support' organ for digestion?", options: ["Stomach", "Esophagus", "Liver", "Small intestine"], correct: 2, page: 1, note: "Supporting organs include the teeth, tongue, salivary glands, liver, pancreas, and gallbladder." },
+        { q: "What is the term for the process of chewing and swallowing?", options: ["Propulsion", "Ingestion", "Absorption", "Excretion"], correct: 1, page: 2, note: "Ingestion includes chewing and swallowing." },
+        { q: "The process where muscles move the contents of the canal forward is:", options: ["Secretion", "Absorption", "Propulsion", "Catabolism"], correct: 2, page: 2, note: "Propulsion: where muscles move the contents of the canal forward." },
+        { q: "Digestion is a form of ______ (breaking down of substances).", options: ["Anabolism", "Catabolism", "Metabolism", "Respiration"], correct: 1, page: 2, note: "Digestion is a form of catabolism or breaking down of substances." },
+        { q: "Where does the digestive process begin?", options: ["Stomach", "Small intestine", "Mouth", "Esophagus"], correct: 2, page: 3, note: "The digestive process starts in the mouth." },
+        { q: "What enzyme in saliva starts breaking down starches?", options: ["Pepsin", "Lipase", "Amylase", "Insulin"], correct: 2, page: 3, note: "Saliva contains an enzyme called amylase, which begins the process of breaking down starches." },
+        { q: "What is the mass of chewed food mixed with saliva called?", options: ["Chyme", "Bolus", "Feces", "Bile"], correct: 1, page: 3, note: "The tongue and teeth turn the food into a small, rounded mass called a bolus." },
+        { q: "What structure prevents food from entering the windpipe (trachea)?", options: ["Uvula", "Epiglottis", "Pharynx", "Esophagus"], correct: 1, page: 3, note: "The epiglottis... folds over the windpipe to prevent the person from choking." },
+        { q: "The muscular tube that moves food to the stomach is the:", options: ["Trachea", "Bronchi", "Esophagus", "Pharynx"], correct: 2, page: 3, note: "The esophagus is a muscular tube that moves the food into the stomach." },
+        { q: "What is the name of the rhythmic muscle contractions that move food?", options: ["Diffusion", "Peristalsis", "Osmosis", "Circulation"], correct: 1, page: 3, note: "Peristalsis: rhythmic, wave-like muscle contractions." },
+        { q: "The stomach can expand to hold up to ______ of food.", options: ["1 liter", "2 liters", "4 liters", "10 liters"], correct: 2, page: 4, note: "The stomach is a muscular, sac-like organ that can expand to hold up to 4 liters of food." },
+        { q: "What is the highly acidic liquid in the stomach called?", options: ["Saliva", "Gastric juice", "Bile", "Serum"], correct: 1, page: 4, note: "The stomach produces gastric juice, which is highly acidic." },
+        { q: "What is the name of the enzyme in the stomach that breaks down proteins?", options: ["Amylase", "Pepsin", "Trypsin", "Lactase"], correct: 1, page: 4, note: "The stomach produces enzymes such as pepsin to break down proteins." },
+        { q: "The thick, semi-liquid mixture formed in the stomach is called:", options: ["Bolus", "Chyme", "Feces", "Plasma"], correct: 1, page: 4, note: "The result is a thick, semi-liquid mixture called chyme." },
+        { q: "Where does most of the absorption of nutrients take place?", options: ["Stomach", "Small intestine", "Large intestine", "Mouth"], correct: 1, page: 4, note: "The small intestine is the site of most of the absorption of nutrients into the blood." },
+        { q: "What are the three parts of the small intestine?", options: ["Cecum, Colon, Rectum", "Duodenum, Jejunum, Ileum", "Fundus, Body, Pylorus", "Cardia, Antrum, Canal"], correct: 1, page: 4, note: "The small intestine consists of the duodenum, the jejunum, and the ileum." },
+        { q: "Bile is produced by the ______ and stored in the ______.", options: ["Pancreas / Liver", "Liver / Gallbladder", "Gallbladder / Liver", "Stomach / Pancreas"], correct: 1, page: 4, note: "Bile is produced in the liver and stored in the gallbladder." },
+        { q: "What is the primary function of Bile?", options: ["Break down sugars", "Break down fats", "Break down proteins", "Moisten food"], correct: 1, page: 4, note: "Bile helps the body break down fats." },
+        { q: "The finger-like projections in the small intestine are called:", options: ["Cilia", "Villi", "Flagella", "Pores"], correct: 1, page: 4, note: "Tiny, finger-like projections called villi line the small intestine." },
+        { q: "How long is the small intestine?", options: ["2 meters", "6.7 meters (22 feet)", "9 meters", "1 meter"], correct: 1, page: 4, note: "The small intestine is around 22 feet (6.7 meters) long." },
+        { q: "What is the main function of the Large Intestine?", options: ["Absorb proteins", "Absorb water and electrolytes", "Produce insulin", "Break down starches"], correct: 1, page: 6, note: "From the large intestine, the body absorbs water and electrolytes." },
+        { q: "The large intestine is also known as the:", options: ["Alimentary canal", "Colon", "Rectum", "Ileum"], correct: 1, page: 5, note: "The large intestine, or colon." },
+        { q: "What part of the large intestine is a pouch where food enters from the small intestine?", options: ["Sigmoid", "Cecum", "Transverse colon", "Rectum"], correct: 1, page: 5, note: "cecum, a pouch through which food enters from the small intestine." },
+        { q: "The colon contains trillions of ______ to break down undigested food.", options: ["Viruses", "Gut bacteria", "Red blood cells", "Enzymes"], correct: 1, page: 6, note: "trillions of gut bacteria break down any undigested food." },
+        { q: "What receptors in the rectum detect when it is full?", options: ["Chemoreceptors", "Stretch receptors", "Thermoreceptors", "Pain receptors"], correct: 1, page: 6, note: "nerves in the wall of the rectum known as stretch receptors detect when the chamber is full." },
+        { q: "What organ filters blood and produces bile?", options: ["Pancreas", "Liver", "Spleen", "Gallbladder"], correct: 1, page: 7, note: "Liver: Filters blood, and produces bile to break down fats." },
+        { q: "Which organ makes enzymes to break down all types of foods?", options: ["Liver", "Pancreas", "Salivary glands", "Stomach"], correct: 1, page: 7, note: "pancreas: Make enzymes to break down foods." },
+        { q: "The gallbladder stores bile.", options: ["True", "False"], correct: 0, page: 7, note: "True. Gall bladder: Stores bile." },
+        { q: "Absorption is the process where nutrients pass into the bloodstream.", options: ["True", "False"], correct: 0, page: 7, note: "True. Small intestine: Absorbs nutrients into bloodstream." },
+        { q: "Teeth and tongue provide mechanical processing.", options: ["True", "False"], correct: 0, page: 2, note: "True. These organs provide mechanical processing." },
+        { q: "The large intestine is longer than the small intestine.", options: ["True", "False"], correct: 1, page: 5, note: "False. Large intestine is 6 ft (2m), Small intestine is 22 ft (6.7m)." },
+        { q: "Mastication is another word for chewing.", options: ["True", "False"], correct: 0, page: 3, note: "True. In the mouth, the teeth and tongue begin the process of mastication (chewing)." },
+        { q: "Chyme is formed in the esophagus.", options: ["True", "False"], correct: 1, page: 4, note: "False. Chyme is formed in the stomach." },
+        { q: "Villi decrease the surface area for absorption.", options: ["True", "False"], correct: 1, page: 4, note: "False. Villi increase the surface area for absorption." },
+        { q: "The ileum is the first part of the small intestine.", options: ["True", "False"], correct: 1, page: 4, note: "False. The first part is the duodenum." },
+        { q: "The colon consists of ascending, transverse, and descending parts.", options: ["True", "False"], correct: 0, page: 5, note: "True. It consists of ascending, transverse, descending, and sigmoid colon." },
+        { q: "Defecation is the excretion of solid waste.", options: ["True", "False"], correct: 0, page: 2, note: "True. excretion of solid waste (defecation)." },
+        { q: "The esophagus uses peristalsis to move food.", options: ["True", "False"], correct: 0, page: 3, note: "True. The esophagus moves food... via a process called peristalsis." },
+        { q: "Hydrochloric acid in the stomach helps kill bacteria.", options: ["True", "False"], correct: 0, page: 4, note: "True. Gastric juice... is highly acidic and helps destroy any bacteria." },
+        { q: "Saliva moistens food to make it easier to swallow.", options: ["True", "False"], correct: 0, page: 7, note: "True. Saliva is added to food to break down starches, moistens the food." },
+        { q: "The sigmoid colon comes after the ascending colon.", options: ["True", "False"], correct: 1, page: 5, note: "False. Sigmoid is the final part of the colon before the rectum." },
+        { q: "The liver is part of the alimentary canal.", options: ["True", "False"], correct: 1, page: 1, note: "False. It is a support organ, not part of the canal itself." },
+        { q: "Small intestine absorption involves nutrients entering cells.", options: ["True", "False"], correct: 0, page: 1, note: "True. enabling the nutrients in food to enter the body and its cells." },
+        { q: "The alimentary canal is the same as the gastrointestinal tract.", options: ["True", "False"], correct: 0, page: 1, note: "True. gastrointestinal tract, also called the alimentary canal." },
+        { q: "Bacteria in the colon break down undigested food.", options: ["True", "False"], correct: 0, page: 6, note: "True. trillions of gut bacteria break down any undigested food." },
+        { q: "The rectum stimulates the desire to defecate when full.", options: ["True", "False"], correct: 0, page: 6, note: "True. stretch receptors detect when the chamber is full and stimulate the desire." },
+        { q: "Amylase breaks down fats.", options: ["True", "False"], correct: 1, page: 3, note: "False. Amylase breaks down starches; Bile helps break down fats." },
+        { q: "The human body systems include the digestive system.", options: ["True", "False"], correct: 0, page: 7, note: "True. Human body systems--digestive." }
+    ];
+
+    let shuffledQuestions = [];
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    function initQuiz() {
+        shuffledQuestions = questions.sort(() => Math.random() - 0.5);
+        currentQuestionIndex = 0;
+        score = 0;
+        document.getElementById("game-screen").style.display = "block";
+        document.getElementById("result-screen").style.display = "none";
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const q = shuffledQuestions[currentQuestionIndex];
+        document.getElementById("q-count").innerText = currentQuestionIndex + 1;
+        document.getElementById("question-text").innerText = q.q;
+        document.getElementById("current-score").innerText = score;
+        
+        const optionsContainer = document.getElementById("options");
+        optionsContainer.innerHTML = "";
+        document.getElementById("feedback").style.display = "none";
+        document.getElementById("next-btn").style.display = "none";
+
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement("button");
+            btn.classList.add("option-btn");
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(index, q.correct, q.note, q.page);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selected, correct, note, page) {
+        const buttons = document.querySelectorAll(".option-btn");
+        const feedback = document.getElementById("feedback");
+        
+        buttons.forEach(btn => btn.disabled = true);
+
+        if (selected === correct) {
+            buttons[selected].classList.add("correct-anim");
+            score++;
+            document.getElementById("current-score").innerText = score;
+        } else {
+            buttons[selected].classList.add("wrong-anim");
+            buttons[correct].classList.add("correct-anim");
+            feedback.style.display = "block";
+            feedback.style.backgroundColor = "#fff3cd";
+            feedback.style.border = "1px solid #ffeeba";
+            feedback.innerHTML = `<strong>خطأ! الإجابة الصحيحة هي: ${shuffledQuestions[currentQuestionIndex].options[correct]}</strong><br>${note}<br><small>(المصدر: صفحة رقم ${page})</small>`;
+        }
+
+        document.getElementById("next-btn").style.display = "block";
+    }
+
+    function loadNextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < shuffledQuestions.length) {
+            showQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        document.getElementById("game-screen").style.display = "none";
+        document.getElementById("result-screen").style.display = "block";
+        document.getElementById("final-score-text").innerText = `انتهى اختبار الجهاز الهضمي! نتيجتك هي ${score} من 50.`;
+    }
+
+    window.onload = initQuiz;
+</script>
+
+</body>
+</html>
